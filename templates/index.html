@@ -1,0 +1,73 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20 Questions Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #startButton, #userResponse, #remainingCharacters {
+            margin-top: 10px;
+        }
+        #question {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>20 QA Game Vectorize</h1>
+    <button id="startButton" onclick="startGame()">Start</button>
+    <div id="question"></div>
+    <input type="text" id="userResponse" placeholder="Enter 'yes' or 'no'">
+    <button onclick="sendUserResponse()">Entry</button>
+
+
+    <div id="remainingCharacters"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + 5000);
+        var responseInput = document.getElementById('userResponse');
+
+        socket.on('game_started', function(data) {
+            alert(data.message);
+        });
+
+        socket.on('ask_question', function(data) {
+            document.getElementById('question').innerHTML = "<strong>Question: Does the character</strong> " + data.question;
+        });
+
+        socket.on('remaining_characters', function(data) {
+            if (data.count) {
+                document.getElementById('remainingCharacters').innerHTML = "<strong>Remaining characters:</strong> " + data.count;
+            }
+            if (data.characters) {
+                document.getElementById('remainingCharacters').innerHTML = "<strong>Remaining characters:</strong> " + data.characters.join(', ');
+            }
+        });
+
+        function startGame() {
+            socket.emit('start_game');
+        }
+
+        function sendUserResponse() {
+            var userResponse = responseInput.value.trim().toLowerCase();
+            if (userResponse === 'yes' || userResponse === 'no') {
+                socket.emit('user_response', {'response': userResponse});
+            } else {
+                alert("Please answer with 'yes' or 'no'.");
+            }
+        }
+    </script>
+</body>
+</html>
